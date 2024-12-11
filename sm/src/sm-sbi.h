@@ -38,4 +38,11 @@ sbi_sm_random(void);
 unsigned long
 sbi_sm_call_plugin(uintptr_t plugin_id, uintptr_t call_id, uintptr_t arg0, uintptr_t arg1);
 
+unsigned long
+sbi_sm_create_keypair(uintptr_t pk, int index, unsigned char *issued_crt, int* issued_crt_len);
+
+unsigned long
+getting_cert_chain(uintptr_t* cert, int* sizes);
+
+
 #endif

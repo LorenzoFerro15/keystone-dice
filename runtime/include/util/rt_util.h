@@ -16,5 +16,9 @@ void tlb_flush(void);
 
 extern unsigned char rt_copy_buffer_1[RISCV_PAGE_SIZE];
 extern unsigned char rt_copy_buffer_2[RISCV_PAGE_SIZE];
+extern unsigned char rt_copy_buffer_3[RISCV_PAGE_SIZE];
+extern uintptr_t tmp_copy_buf_vec[3];
+extern int sizes[3];
+
 
 #endif /* _RT_UTIL_H_ */

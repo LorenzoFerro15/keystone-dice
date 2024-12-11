@@ -9,6 +9,7 @@
 #include "cpu.h"
 #include "platform-hook.h"
 #include "plugins/plugins.h"
+#include "mprv.h"
 #include <sbi/riscv_asm.h>
 #include <sbi/sbi_console.h>
 
@@ -95,5 +96,19 @@ unsigned long sbi_sm_call_plugin(uintptr_t plugin_id, uintptr_t call_id, uintptr
 {
   unsigned long ret;
   ret = call_plugin(cpu_get_enclave_id(), plugin_id, call_id, arg0, arg1);
+  return ret;
+}
+
+unsigned long sbi_sm_create_keypair(uintptr_t pk, int index, unsigned char *issued_crt, int* issued_crt_len)
+{
+  unsigned long ret;
+  ret = create_keypair(cpu_get_enclave_id(), (unsigned char *) pk, index, issued_crt, issued_crt_len);
+  return ret;
+}
+
+unsigned long
+getting_cert_chain(uintptr_t* certs, int* sizes){
+  unsigned long ret;
+  ret = get_cert_chain(cpu_get_enclave_id(), (unsigned char **) certs, sizes);
   return ret;
 }

@@ -12,6 +12,7 @@
 
 #include "sm_call.h"
 #include "sm_err.h"
+#include "x509.h"
 
 void sm_init(bool cold_boot);
 

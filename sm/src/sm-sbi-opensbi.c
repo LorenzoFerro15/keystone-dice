@@ -69,6 +69,13 @@ static int sbi_ecall_keystone_enclave_handler(unsigned long extid, unsigned long
     case SBI_SM_CALL_PLUGIN:
       retval = sbi_sm_call_plugin(regs->a0, regs->a1, regs->a2, regs->a3);
       break;
+    case SBI_CREATE_KEYPAIR:
+      retval = sbi_sm_create_keypair(regs->a0, regs->a1, (unsigned char*) regs->a2, (int*) regs->a3);
+      break;
+    case SBI_GET_CHAIN:
+      retval = getting_cert_chain((long unsigned int*)regs->a0, (int*) regs->a1);
+      break;
+
     default:
       retval = SBI_ERR_SM_NOT_IMPLEMENTED;
       break;

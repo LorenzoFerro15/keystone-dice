@@ -12,5 +12,7 @@ void*
 memmove(void* dest, const void* src, size_t count);
 size_t
 strlen(char* str);
+char*
+strcpy(char* dst, const char* src);
 
 #endif

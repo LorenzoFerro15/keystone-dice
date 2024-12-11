@@ -89,4 +89,28 @@ SECTIONS
 	/* 64 Bytes : security monitor's signature by device */
 	PROVIDE( sanctum_sm_signature = . );
 	. += 0x40;
+
+	/* 512 Bytes : Security monitor certificate */
+	PROVIDE( sanctum_sm_cert = . );
+	. += 0x200;
+	
+	/* 512 Bytes : device certificate */
+	PROVIDE( sanctum_dev_cert = . );
+	. += 0x200;
+	
+	/* 512 Bytes : manufacturer certificate */
+	PROVIDE( sanctum_man_cert = . );
+	. += 0x200;
+	
+	/* 4 Byte : security monitor certificate length */
+	PROVIDE( sanctum_sm_cert_len = . );
+	. += 0x04;
+	
+	/* 4 Byte : device certificate length */
+	PROVIDE( sanctum_dev_cert_len = . );
+	. += 0x04;
+	
+	/* 4 Byte : manufacturer certificate length */
+	PROVIDE( sanctum_man_cert_len = . );
+	. += 0x04;
 }

@@ -118,7 +118,7 @@ uintptr_t dispatch_edgecall_ocall( unsigned long call_id,
      value passed in the edge_call return data. We need to somehow
      validate these. The size in the edge_call return data is larger
      almost certainly.*/
-  copy_to_user(return_buffer, (void*)return_ptr, ret_len_untrusted > return_len ? return_len : ret_len_untrusted);
+  copy_to_user(return_buffer, (void*)return_ptr, return_len);
 
   return 0;
 
@@ -155,10 +155,11 @@ void handle_syscall(struct encl_ctx* ctx)
   uintptr_t arg2 = ctx->regs.a2;
   uintptr_t arg3 = ctx->regs.a3;
   uintptr_t arg4 = ctx->regs.a4;
+  uintptr_t arg5 = ctx->regs.a5;
 
   // We only use arg5 in these for now, keep warnings happy.
 #if defined(USE_LINUX_SYSCALL) || defined(USE_NET_SYSCALL)
-  uintptr_t arg5 = ctx->regs.a5;
+  // uintptr_t arg5 = ctx->regs.a5;
 #endif /* IO_SYSCALL */
   uintptr_t ret = 0;
 
@@ -208,6 +209,136 @@ void handle_syscall(struct encl_ctx* ctx)
     memset(rt_copy_buffer_1, 0x00, sizeof(rt_copy_buffer_1));
 
     break;
+  
+    case(RUNTIME_SYSCALL_CREATE_KEYPAIR):
+    // buffer_1_pa = translate((uintptr_t)rt_copy_buffer_1);
+    // buffer_2_pa = translate((uintptr_t)rt_copy_buffer_2);
+    // uintptr_t buffer_3_pa = translate((uintptr_t)rt_copy_buffer_3);
+
+    // ret = sbi_create_keypair(buffer_1_pa, arg1, buffer_2_pa, buffer_3_pa);
+    ret = sbi_create_keypair((uintptr_t)rt_copy_buffer_1, arg1, (uintptr_t)rt_copy_buffer_2, (uintptr_t)rt_copy_buffer_3);
+    if (!ret) {
+      /*
+      printf("[RT] PK: ");
+      print_hex_string(rt_copy_buffer_1, PUBLIC_KEY_SIZE);
+      printf("\r\n[RT] crt: ");
+      print_hex_string(rt_copy_buffer_2, *((int*)rt_copy_buffer_3));
+      printf("\r\n[RT] crt_len: %d\r\n", *((int*)rt_copy_buffer_3));
+      */
+      copy_to_user((void*)arg0, (void*)rt_copy_buffer_1, PUBLIC_KEY_SIZE);
+      copy_to_user((void*)arg2, (void*)rt_copy_buffer_2, *((int*)rt_copy_buffer_3));
+      copy_to_user((void*)arg3, (void*)rt_copy_buffer_3, sizeof(int));
+    }
+
+    memset(rt_copy_buffer_1, 0x00, sizeof(rt_copy_buffer_1));
+    memset(rt_copy_buffer_2, 0x00, sizeof(rt_copy_buffer_2));
+    memset(rt_copy_buffer_3, 0x00, sizeof(rt_copy_buffer_3));
+    break;
+
+  case(RUNTIME_SYSCALL_GET_CHAIN):
+    // tmp_copy_buf_vec[0] = translate((uintptr_t)rt_copy_buffer_1);
+    // tmp_copy_buf_vec[1] = translate((uintptr_t)rt_copy_buffer_2);
+    // tmp_copy_buf_vec[2] = translate((uintptr_t)rt_copy_buffer_3);
+    // buffer_1_pa = translate((uintptr_t)tmp_copy_buf_vec);
+    // buffer_2_pa = translate((uintptr_t)sizes);
+    
+    tmp_copy_buf_vec[0] = (uintptr_t)rt_copy_buffer_1;
+    tmp_copy_buf_vec[1] = (uintptr_t)rt_copy_buffer_2;
+    tmp_copy_buf_vec[2] = (uintptr_t)rt_copy_buffer_3;
+
+    // ret = sbi_get_cert_chain(buffer_1_pa, buffer_2_pa);
+    ret = sbi_get_cert_chain((uintptr_t)tmp_copy_buf_vec, (uintptr_t)sizes);
+    if (!ret) {
+      /*
+      printf("[RT] crt0: pv-%p\n", rt_copy_buffer_1);
+      printf("[RT] crt1: pv-%p\n", rt_copy_buffer_2);
+      printf("[RT] crt2: pv-%p\n", rt_copy_buffer_3);
+      printf("[RT] crt0: pp-%p\n", translate((uintptr_t)rt_copy_buffer_1));
+      printf("[RT] crt1: pp-%p\n", translate((uintptr_t)rt_copy_buffer_2));
+      printf("[RT] crt2: pp-%p\n", translate((uintptr_t)rt_copy_buffer_3));
+      printf("[RT] crt0: 0x");
+      for(int i = 0; i < sizes[0]; i++) {
+        printf("%02x", rt_copy_buffer_1[i]);
+      }
+      printf("\n[RT] sizes0: %d\n", sizes[0]);
+      */
+      copy_to_user((void*)arg0, (void*)rt_copy_buffer_1, sizes[0]);
+      copy_to_user((void*)arg1, (void*)rt_copy_buffer_2, sizes[1]);
+      copy_to_user((void*)arg2, (void*)rt_copy_buffer_3, sizes[2]);
+      copy_to_user((void*)arg3, (void*)&sizes[0], sizeof(unsigned long));
+      copy_to_user((void*)arg4, (void*)&sizes[1], sizeof(unsigned long));
+      copy_to_user((void*)arg5, (void*)&sizes[2], sizeof(unsigned long));
+    }
+
+    memset(rt_copy_buffer_1, 0x00, sizeof(rt_copy_buffer_1));
+    memset(rt_copy_buffer_2, 0x00, sizeof(rt_copy_buffer_2));
+    memset(rt_copy_buffer_3, 0x00, sizeof(rt_copy_buffer_3));
+    memset(tmp_copy_buf_vec, 0x00, sizeof(tmp_copy_buf_vec));
+    memset(sizes, 0x00, sizeof(sizes));
+    break;
+
+  case(RUNTIME_SYSCALL_CRYPTO_INTERFACE):
+    if(arg2 > sizeof(rt_copy_buffer_1)) {
+      ret = -1;
+      break;
+    }
+    copy_from_user(rt_copy_buffer_1, (void*) arg1, arg2);
+    copy_from_user(rt_copy_buffer_3, (void*) arg5, PUBLIC_KEY_SIZE);
+    // buffer_1_pa = translate((uintptr_t)rt_copy_buffer_1);
+    // buffer_2_pa = translate((uintptr_t)rt_copy_buffer_2);
+    // buffer_3_pa = translate((uintptr_t)sizes);
+    // uintptr_t buffer_4_pa = translate((uintptr_t)rt_copy_buffer_3);
+
+    // ret = sbi_crypto_interface(arg0, buffer_1_pa, arg2, buffer_2_pa, buffer_3_pa, buffer_4_pa);
+    ret = sbi_crypto_interface(arg0, (uintptr_t)rt_copy_buffer_1, arg2, (uintptr_t)rt_copy_buffer_2, (uintptr_t)sizes, (uintptr_t)rt_copy_buffer_3);
+    if (!ret) {
+      copy_to_user((void*)arg3, (void*)rt_copy_buffer_2, sizes[0]);
+      copy_to_user((void*)arg4, (void*)sizes, sizeof(unsigned long));
+    }
+    
+    memset(rt_copy_buffer_1, 0x00, sizeof(rt_copy_buffer_1));
+    memset(rt_copy_buffer_2, 0x00, sizeof(rt_copy_buffer_2));
+    memset(rt_copy_buffer_3, 0x00, sizeof(rt_copy_buffer_3));
+    memset(sizes, 0x00, sizeof(sizes));
+    break;
+
+  case(RUNTIME_SYSCALL_PRINT_STRING):
+    copy_from_user((void*)rt_copy_buffer_1, (void*)arg0, arg1);
+    printf((char *)rt_copy_buffer_1);
+    ret = 0;
+  case RUNTIME_SYSCALL_WRITE_BUFFER:
+    print_strace("[runtime] RUNTIME_SYSCALL_WRITE_BUFFER: (%lx) (%lx) (%lu)\r\n", arg0, arg1, arg2);
+
+    uintptr_t user_buffer_pa = translate((uintptr_t)rt_copy_buffer_1);
+
+    if (arg2 > sizeof(rt_copy_buffer_1)) {
+      ret = -1;
+      break;
+    }
+
+    // TODO: why is this copy needed? and why `uintptr_t user_buffer_pa = translate((uintptr_t *)arg1); is not sufficient`
+    copy_from_user(rt_copy_buffer_1, (void *)arg1, arg2);
+
+    ret = sbi_write_buffer(arg0, user_buffer_pa, arg2);
+
+    break;
+
+  case RUNTIME_SYSCALL_READ_REGISTER:
+    print_strace("[runtime] RUNTIME_SYSCALL_READ_BUFFER: (%lx) (%ld) (%lx)\r\n", arg0, arg1, arg2);
+
+    uint64_t reg = -1; // must be initialized
+    uintptr_t rt_reg_pa = translate((uintptr_t)&reg);
+    uint64_t *user_ptr = (uint64_t *)arg2;
+
+    ret = sbi_read_register(arg0, 0, (uint64_t *)rt_reg_pa);
+    if (ret < 0) {
+      ret = -1;
+      break;
+    }
+    copy_to_user(user_ptr, &reg, sizeof(reg));
+
+    break;
+
 
 
 #ifdef USE_LINUX_SYSCALL

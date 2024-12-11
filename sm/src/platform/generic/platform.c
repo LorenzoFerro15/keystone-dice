@@ -52,12 +52,24 @@ extern byte sanctum_sm_signature[SIGNATURE_SIZE];
 extern byte sanctum_sm_secret_key[PRIVATE_KEY_SIZE];
 extern byte sanctum_sm_public_key[PUBLIC_KEY_SIZE];
 extern byte sanctum_dev_public_key[PUBLIC_KEY_SIZE];
+extern byte sanctum_sm_cert[CERT_SIZE];
+extern byte sanctum_dev_cert[CERT_SIZE];
+extern byte sanctum_man_cert[CERT_SIZE];
+extern int sanctum_sm_cert_len;
+extern int sanctum_dev_cert_len;
+extern int sanctum_man_cert_len;
 
 extern byte sm_hash[MDSIZE];
 extern byte sm_signature[SIGNATURE_SIZE];
 extern byte sm_public_key[PUBLIC_KEY_SIZE];
 extern byte sm_private_key[PRIVATE_KEY_SIZE];
 extern byte dev_public_key[PUBLIC_KEY_SIZE];
+extern byte sm_cert[CERT_SIZE];
+extern byte dev_cert[CERT_SIZE];
+extern byte man_cert[CERT_SIZE];
+extern int sm_cert_len;
+extern int dev_cert_len;
+extern int man_cert_len;
 
 void sm_copy_key(void)
 {
@@ -66,4 +78,10 @@ void sm_copy_key(void)
   sbi_memcpy(sm_public_key, sanctum_sm_public_key, PUBLIC_KEY_SIZE);
   sbi_memcpy(sm_private_key, sanctum_sm_secret_key, PRIVATE_KEY_SIZE);
   sbi_memcpy(dev_public_key, sanctum_dev_public_key, PUBLIC_KEY_SIZE);
+  sbi_memcpy(sm_cert, sanctum_sm_cert, CERT_SIZE);
+  sbi_memcpy(dev_cert, sanctum_dev_cert, CERT_SIZE);
+  sbi_memcpy(man_cert, sanctum_man_cert, CERT_SIZE);
+  sm_cert_len = sanctum_sm_cert_len;
+  dev_cert_len = sanctum_dev_cert_len;
+  man_cert_len = sanctum_man_cert_len;
 }

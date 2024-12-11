@@ -1,6 +1,111 @@
 #ifndef __STRING_H__
 #define __STRING_H__
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+
+unsigned int strlen(const char *s)
+{
+    unsigned int count = 0;
+    while(*s!='\0')
+    {
+        count++;
+        s++;
+    }
+    return count;
+}
+
+int strncmp( const char * s1, const char * s2, size_t n )
+{
+    while ( n && *s1 && ( *s1 == *s2 ) )
+    {
+        ++s1;
+        ++s2;
+        --n;
+    }
+    if ( n == 0 )
+    {
+        return 0;
+    }
+    else
+    {
+        return ( *(unsigned char *)s1 - *(unsigned char *)s2 );
+    }
+}
+
+char* strncpy(char* destination, const char* source, size_t num)
+{
+    // return if no memory is allocated to the destination
+    if (destination == NULL) {
+        return NULL;
+    }
+ 
+    // take a pointer pointing to the beginning of the destination string
+    char* ptr = destination;
+ 
+    // copy first `num` characters of C-string pointed by source
+    // into the array pointed by destination
+    while (*source && num--)
+    {
+        *destination = *source;
+        destination++;
+        source++;
+    }
+ 
+    // null terminate destination string
+    *destination = '\0';
+ 
+    // the destination is returned by standard `my_strncpy()`
+    return ptr;
+}
+
+void * memmove(void* dest, const void* src, unsigned int n)
+{
+    char *pDest = (char *)dest;
+    const char *pSrc =( const char*)src;
+    //allocate memory for tmp array
+    
+    //char *tmp  = (char *)malloc(sizeof(char ) * n);
+    //if(NULL == tmp)
+    //{
+      //  return NULL;
+    //}
+    //else
+    //{
+      
+    unsigned int i = 0;
+    // copy src to tmp array
+    for(i =0; i < n ; ++i)
+    {
+        *(pDest + i) = *(pSrc + i);
+    }
+        
+        //copy tmp to dest
+        ///for(i =0 ; i < n ; ++i)
+        //{
+          //  *(pDest + i) = *(tmp + i);
+        //}
+        //free(tmp); //free allocated memory
+        
+    //}
+    return dest;
+}
+
+int
+memcmp (const void *str1, const void *str2, size_t count)
+{
+    const unsigned char *s1 = (const unsigned char*)str1;
+    const unsigned char *s2 = (const unsigned char*)str2;
+
+  while (count-- > 0)
+    {
+      if (*s1++ != *s2++)
+	  return s1[-1] < s2[-1] ? -1 : 1;
+    }
+  return 0;
+}
+
 void* memcpy(void* dest, const void* src, size_t len)
 {
   const char* s = src;

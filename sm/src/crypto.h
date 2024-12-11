@@ -16,6 +16,7 @@ typedef sha3_ctx_t hash_ctx;
 #define SIGNATURE_SIZE  64
 #define PRIVATE_KEY_SIZE  64 // includes public key
 #define PUBLIC_KEY_SIZE 32
+#define CERT_SIZE 512
 
 typedef unsigned char byte;
 
@@ -23,6 +24,12 @@ extern byte sm_hash[MDSIZE];
 extern byte sm_signature[SIGNATURE_SIZE];
 extern byte sm_public_key[PUBLIC_KEY_SIZE];
 extern byte sm_private_key[PRIVATE_KEY_SIZE];
+extern byte sm_cert[CERT_SIZE];
+extern byte dev_cert[CERT_SIZE];
+extern byte man_cert[CERT_SIZE];
+extern int sm_cert_len;
+extern int dev_cert_len;
+extern int man_cert_len;
 
 void hash_init(hash_ctx* hash_ctx);
 void hash_extend(hash_ctx* hash_ctx, const void* ptr, size_t len);

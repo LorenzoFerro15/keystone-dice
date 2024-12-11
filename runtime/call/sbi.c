@@ -2,27 +2,36 @@
 
 #include "mm/vm_defs.h"
 
-#define SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2)    \
+#define SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, ___arg4, ___arg5)    \
   ({                                                             \
     register uintptr_t a0 __asm__("a0") = (uintptr_t)(___arg0);  \
     register uintptr_t a1 __asm__("a1") = (uintptr_t)(___arg1);  \
     register uintptr_t a2 __asm__("a2") = (uintptr_t)(___arg2);  \
+    register uintptr_t a3 __asm__("a3") = (uintptr_t)(___arg3);  \
+    register uintptr_t a4 __asm__("a4") = (uintptr_t)(___arg4);  \
+    register uintptr_t a5 __asm__("a5") = (uintptr_t)(___arg5);  \
     register uintptr_t a6 __asm__("a6") = (uintptr_t)(___which); \
     register uintptr_t a7 __asm__("a7") = (uintptr_t)(___ext);   \
     __asm__ volatile("ecall"                                     \
                      : "+r"(a0)                                  \
-                     : "r"(a1), "r"(a2), "r"(a6), "r"(a7)        \
+                     : "r"(a1), "r"(a2), "r"(a3), "r"(a4), "r"(a5), "r"(a6), "r"(a7)        \
                      : "memory");                                \
     a0;                                                          \
   })
 
 /* Lazy implementations until SBI is finalized */
-#define SBI_CALL_0(___ext, ___which) SBI_CALL(___ext, ___which, 0, 0, 0)
-#define SBI_CALL_1(___ext, ___which, ___arg0) SBI_CALL(___ext, ___which, ___arg0, 0, 0)
+#define SBI_CALL_0(___ext, ___which) SBI_CALL(___ext, ___which, 0, 0, 0, 0, 0, 0)
+#define SBI_CALL_1(___ext, ___which, ___arg0) SBI_CALL(___ext, ___which, ___arg0, 0, 0, 0, 0, 0)
 #define SBI_CALL_2(___ext, ___which, ___arg0, ___arg1) \
-  SBI_CALL(___ext, ___which, ___arg0, ___arg1, 0)
+  SBI_CALL(___ext, ___which, ___arg0, ___arg1, 0, 0, 0, 0)
 #define SBI_CALL_3(___ext, ___which, ___arg0, ___arg1, ___arg2) \
-  SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2)
+  SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2, 0, 0, 0)
+#define SBI_CALL_4(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3) \
+  SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, 0, 0)
+#define SBI_CALL_5(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, ___arg4) \
+  SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, ___arg4, 0)
+#define SBI_CALL_6(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, ___arg4, ___arg5) \
+  SBI_CALL(___ext, ___which, ___arg0, ___arg1, ___arg2, ___arg3, ___arg4, ___arg5)
 
 void
 sbi_putchar(char character) {
@@ -76,3 +85,28 @@ uintptr_t
 sbi_get_sealing_key(uintptr_t key_struct, uintptr_t key_ident, uintptr_t len) {
   return SBI_CALL_3(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_GET_SEALING_KEY, key_struct, key_ident, len);
 }
+
+uintptr_t
+sbi_create_keypair(uintptr_t pk, uintptr_t index, uintptr_t issued_crt, uintptr_t issued_crt_len){
+  return SBI_CALL_4(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_CREATE_KEYPAIR, pk, index, issued_crt, issued_crt_len);
+}
+
+uintptr_t
+sbi_get_cert_chain(uintptr_t certs, uintptr_t sizes){
+  return SBI_CALL_2(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_GET_CHAIN, certs, sizes);
+}
+
+uintptr_t
+sbi_crypto_interface(uintptr_t flag, uintptr_t data, uintptr_t data_len, uintptr_t out_buf, uintptr_t out_buf_len, uintptr_t pk){
+  return SBI_CALL_6(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_CRYPTO_INTERFACE, flag, data, data_len, out_buf, out_buf_len, pk);
+}
+uintptr_t
+sbi_write_buffer(uintptr_t base_addr, uintptr_t user_buffer, size_t buffer_size) {
+  return SBI_CALL_3(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_WRITE_BUFFER, base_addr, user_buffer, buffer_size);
+}
+
+uintptr_t
+sbi_read_register(uintptr_t base_addr, uintptr_t offset, uint64_t *value) {
+  return SBI_CALL_3(SBI_EXT_EXPERIMENTAL_KEYSTONE_ENCLAVE, SBI_SM_READ_REGISTER, base_addr, offset, value);
+}
+

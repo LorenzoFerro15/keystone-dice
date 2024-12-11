@@ -58,6 +58,12 @@ set(MOCK_SYMBOLS
      -Wl,--wrap=sbi_ecall_register_extension \
      -Wl,--wrap=sanctum_sm_hash \
      -Wl,--wrap=sanctum_sm_signature \
+     -Wl,--wrap=sanctum_sm_cert \
+     -Wl,--wrap=sanctum_dev_cert \
+     -Wl,--wrap=sanctum_man_cert \
+     -Wl,--wrap=sanctum_sm_cert_len \
+     -Wl,--wrap=sanctum_dev_cert_len \
+     -Wl,--wrap=sanctum_man_cert_len \
      -Wl,--wrap=sanctum_sm_public_key \
      -Wl,--wrap=sanctum_sm_secret_key \
      -Wl,--wrap=sanctum_dev_public_key \
@@ -102,6 +108,7 @@ add_executable(test_enclave
 	${SM_SRC}/crypto.c
 	${SM_SRC}/thread.c
 	${SM_SRC}/sm.c
+  ${SM_SRC}/x509.c
 	${MOCK_SOURCE_FILES}
 	)
 target_link_libraries(test_enclave cmocka)

@@ -14,6 +14,8 @@
 #include "thread.h"
 #include <crypto.h>
 
+#define NAME_MAX 255
+
 // Special target platform header, set by configure script
 #include TARGET_PLATFORM_HEADER
 
@@ -26,6 +28,7 @@ typedef enum {
   DESTROYING = 0,
   ALLOCATED,
   FRESH,
+  LIBRARY,
   STOPPED,
   RUNNING,
 } enclave_state;
@@ -43,6 +46,7 @@ enum enclave_region_type{
   REGION_INVALID,
   REGION_EPM,
   REGION_UTM,
+  REGION_LIBRARY,
   REGION_OTHER,
 };
 
@@ -66,6 +70,22 @@ struct enclave
   /* measurement */
   byte hash[MDSIZE];
   byte sign[SIGNATURE_SIZE];
+  byte CDI[64];
+  byte local_att_pub[32];
+  byte local_att_priv[64];
+  mbedtls_x509write_cert crt_local_att;
+  unsigned char crt_local_att_der[512];
+  int crt_local_att_der_length;
+
+  byte pk_ldev[32];
+  byte sk_ldev[64];
+  mbedtls_x509write_cert crt_ldev;
+  unsigned char crt_ldev_der[512];
+  int crt_ldev_der_length;
+
+  byte sk_array[10][64];
+  byte pk_array[10][32];
+  int n_keypair;
 
   /* parameters */
   struct runtime_params_t params;
@@ -75,7 +95,22 @@ struct enclave
   struct thread_state threads[MAX_ENCL_THREADS];
 
   struct platform_enclave_data ped;
+
+  char library_name[NAME_MAX+1];
 };
+
+struct library_enclave
+{
+  enclave_id eid; //enclave id
+  enclave_state state; // global state of the enclave
+
+  /* measurement */
+  byte hash[MDSIZE];
+  byte sign[SIGNATURE_SIZE];
+
+  struct platform_enclave_data ped;
+};
+
 
 /* attestation reports */
 struct enclave_report
@@ -127,4 +162,9 @@ uintptr_t get_enclave_region_size(enclave_id eid, int memid);
 unsigned long get_sealing_key(uintptr_t seal_key, uintptr_t key_ident, size_t key_ident_size, enclave_id eid);
 // interrupt handlers
 void sbi_trap_handler_keystone_enclave(struct sbi_trap_regs *regs);
+unsigned long create_keypair(enclave_id eid, unsigned char* pk, int seed_enc, unsigned char* issued_crt, int *issued_crt_len);
+unsigned long get_cert_chain(enclave_id eid, unsigned char** certs, int* sizes);
+unsigned long do_crypto_op(enclave_id eid, int flag, unsigned char* data, int data_len, unsigned char* out_data, int* len_out_data, unsigned char* pk);
+unsigned long print_message();
+unsigned long get_measures(enclave_id eid, unsigned char** out_data, int* n_elem);
 #endif

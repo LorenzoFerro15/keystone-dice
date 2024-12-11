@@ -14,6 +14,9 @@
 #include <sbi/riscv_barrier.h>
 #include <sbi/sbi_console.h>
 #include <sbi/sbi_hart.h>
+#include "sha3/sha3.h"
+#include <sbi/sbi_timer.h>
+#include "x509.h"
 
 static int sm_init_done = 0;
 static int sm_region_id = 0, os_region_id = 0;
@@ -30,6 +33,20 @@ byte sm_signature[SIGNATURE_SIZE] = { 0, };
 byte sm_public_key[PUBLIC_KEY_SIZE] = { 0, };
 byte sm_private_key[PRIVATE_KEY_SIZE] = { 0, };
 byte dev_public_key[PUBLIC_KEY_SIZE] = { 0, };
+byte sm_cert[CERT_SIZE];
+byte dev_cert[CERT_SIZE];
+byte man_cert[CERT_SIZE];
+int sm_cert_len;
+int dev_cert_len;
+int man_cert_len;
+
+mbedtls_x509_crt uff_cert_sm;
+mbedtls_x509_crt uff_cert_root;
+mbedtls_x509_crt uff_cert_man;
+
+sha3_ctx_t ctx_hash;
+unsigned int sanctum_sm_size = 0x1ff000;
+
 
 int osm_pmp_set(uint8_t perm)
 {
@@ -89,31 +106,31 @@ static void sm_print_hash(void)
   sbi_printf("\n");
 }
 
-/*
+
 void sm_print_cert()
 {
 	int i;
 
-	printm("Booting from Security Monitor\n");
-	printm("Size: %d\n", sanctum_sm_size[0]);
+	sbi_printf("Booting from Security Monitor\n");
+	// sbi_printf("Size: %d\n", sm_size[0]);
 
-	printm("============ PUBKEY =============\n");
+	sbi_printf("============ PUBKEY =============\n");
 	for(i=0; i<8; i+=1)
 	{
-		printm("%x",*((int*)sanctum_dev_public_key+i));
-		if(i%4==3) printm("\n");
+		sbi_printf("%x",*((int*)dev_public_key+i));
+		if(i%4==3) sbi_printf("\n");
 	}
-	printm("=================================\n");
+	sbi_printf("=================================\n");
 
-	printm("=========== SIGNATURE ===========\n");
+	sbi_printf("=========== SIGNATURE ===========\n");
 	for(i=0; i<16; i+=1)
 	{
-		printm("%x",*((int*)sanctum_sm_signature+i));
-		if(i%4==3) printm("\n");
+		sbi_printf("%x",*((int*)sm_signature+i));
+		if(i%4==3) sbi_printf("\n");
 	}
-	printm("=================================\n");
+	sbi_printf("=================================\n");
 }
-*/
+
 
 void sm_init(bool cold_boot)
 {
@@ -146,6 +163,21 @@ void sm_init(bool cold_boot)
     // Init the enclave metadata
     enclave_init_metadata();
 
+    sbi_printf("cert sm %d:\n", sm_cert_len);
+    for(int i = 0; i < sm_cert_len; i ++)
+      sbi_printf("%02x", sm_cert[i]);
+    sbi_printf("\n----------------------------------------\n");
+
+    sbi_printf("cert dev %d:\n", dev_cert_len);
+    for(int i = 0; i < dev_cert_len; i ++)
+      sbi_printf("%02x", dev_cert[i]);
+    sbi_printf("\n----------------------------------------\n");
+
+    sbi_printf("cert man %d:\n", man_cert_len);
+    for(int i = 0; i < man_cert_len; i ++)
+      sbi_printf("%02x", man_cert[i]);
+    sbi_printf("\n----------------------------------------\n");
+
     sm_init_done = 1;
     mb();
   }
@@ -166,6 +198,8 @@ void sm_init(bool cold_boot)
     sbi_printf("[SM] platform global init fatal error");
     sbi_hart_hang();
   }
+
+  sm_print_cert();
 
   sbi_printf("[SM] Keystone security monitor has been initialized!\n");
 

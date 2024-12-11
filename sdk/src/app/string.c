@@ -89,3 +89,10 @@ memmove(void* dest, const void* src, size_t count) {
   }
   return dest;
 }
+
+char*
+strcpy(char* dst, const char* src) {
+  char* temp = dst;
+  while ((*dst++ = *src++) != '\0');
+  return temp;
+}

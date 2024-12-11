@@ -26,6 +26,8 @@ reset:
   /* secure boot */
   call bootloader
 
+  mv s10, a0
+
   /* clear_stack_from_bottom */
   li t1, STACK_BOTTOM
 clean_loop:
@@ -78,7 +80,7 @@ clear_all_but_sp:
   mv s7, x0
   mv s8, x0
   mv s9, x0
-  mv s10, x0
+//  mv s10, x0
   mv s11, x0
   mv t3, x0
   mv t4, x0

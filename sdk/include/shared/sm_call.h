@@ -15,6 +15,9 @@
 #define SBI_SM_DESTROY_ENCLAVE   2002
 #define SBI_SM_RUN_ENCLAVE       2003
 #define SBI_SM_RESUME_ENCLAVE    2005
+#define SBI_SM_PRINT_MESSAGE     2010
+#define SBI_GET_MEASURES         2011
+#define SBI_GIVE_INFO_TPM        2012
 #define FID_RANGE_HOST           2999
 
 /* 3000-3999 are called by enclave */
@@ -23,6 +26,14 @@
 #define SBI_SM_GET_SEALING_KEY   3003
 #define SBI_SM_STOP_ENCLAVE      3004
 #define SBI_SM_EXIT_ENCLAVE      3006
+#define SBI_CREATE_KEYPAIR       3007
+#define SBI_GET_CHAIN            3008
+#define SBI_CRYPTO_INTERFACE     3009
+/* SPIRS */
+#define SBI_SM_READ_REGISTER     3010
+#define SBI_SM_WRITE_REGISTER    3011
+#define SBI_SM_WRITE_BUFFER      3012
+#define SBI_SM_READ_BUFFER       3013
 #define FID_RANGE_ENCLAVE        3999
 
 /* 4000-4999 are experimental */
